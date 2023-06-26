@@ -77,6 +77,8 @@
       background: radial-gradient(ellipse at bottom, #000000 0%, #191970 80%);
       z-index: -1;
       overflow: hidden;
+      pointer-events: none;
+
     }
 
     .star-container {
@@ -96,7 +98,7 @@
       height: 2px;
       background: #ffffff;
       position: absolute;
-      opacity: 0;
+      opacity: 0.5;
       pointer-events: none;
       animation: stars 300s infinite;
     }
@@ -115,8 +117,7 @@
 </head>
 <body>
   <div class="cosmos-background">
-    <div class="star-container">
-    </div>
+    <div class="star-container"></div>
   </div>
 
   <h1>Countdown Timer</h1>
@@ -161,6 +162,7 @@
     var continueButton = document.getElementById("continue-button");
     var resetButton = document.getElementById("reset-button");
     var starContainer = document.querySelector(".star-container");
+    var isPaused = false;
 
     function startCountdown() {
       var days = parseInt(document.getElementById("days").value) || 0;
@@ -171,80 +173,113 @@
       totalSeconds = seconds + minutes * 60 + hours * 3600 + days * 86400;
 
       timer = setInterval(function() {
-        totalSeconds--;
+        if (!isPaused) {
+          totalSeconds--;
 
-        if (totalSeconds < 0) {
-          clearInterval(timer);
-          timerElement.textContent = "Countdown complete!";
-          timerElement.style.animation = "fadeOut 1s";
-        } else {
-          var displayDays = Math.floor(totalSeconds / 86400);
-          var displayHours = Math.floor((totalSeconds % 86400) / 3600);
-          var displayMinutes = Math.floor((totalSeconds % 3600) / 60);
-          var displaySeconds = totalSeconds % 60;
+          if (totalSeconds < 0) {
+            clearInterval(timer);
+            timerElement.textContent = "Countdown complete!";
+            timerElement.style.animation = "fadeOut 1s";
+            var sound = document.getElementById("sound");
+            sound.play();
+            stopButton.style.display = "none";
+            continueButton.style.display = "none";
+          } else {
+            var displayDays = Math.floor(totalSeconds / 86400);
+            var displayHours = Math.floor((totalSeconds % 86400) / 3600);
+            var displayMinutes = Math.floor((totalSeconds % 3600) / 60);
+            var displaySeconds = totalSeconds % 60;
 
-          var timeString =
-            ("0" + displayDays).slice(-2) +
-            ":" +
-            ("0" + displayHours).slice(-2) +
-            ":" +
-            ("0" + displayMinutes).slice(-2) +
-            ":" +
-            ("0" + displaySeconds).slice(-2);
+            var timeString =
+              ("0" + displayDays).slice(-2) +
+              ":" +
+              ("0" + displayHours).slice(-2) +
+              ":" +
+              ("0" + displayMinutes).slice(-2) +
+              ":" +
+              ("0" + displaySeconds).slice(-2);
 
-          timerElement.textContent = timeString;
+            timerElement.textContent = timeString;
+          }
         }
       }, 1000);
     }
 
-    function stopCountdown() {
-      clearInterval(timer);
+    function pauseCountdown() {
+      isPaused = true;
       stopButton.style.display = "none";
       continueButton.style.display = "inline-block";
     }
 
     function continueCountdown() {
+      isPaused = false;
       stopButton.style.display = "inline-block";
       continueButton.style.display = "none";
-      startCountdown();
     }
 
     function resetCountdown() {
       clearInterval(timer);
       timerElement.textContent = "00:00:00:00";
-      countdownButton.disabled = false;
-      countdownButton.textContent = "Start Countdown";
+      countdownButton.style.display = "inline-block";
       stopButton.style.display = "none";
       continueButton.style.display = "none";
-      document.getElementById("days").value = 0;
-      document.getElementById("hours").value = 0;
-      document.getElementById("minutes").value = 0;
-      document.getElementById("seconds").value = 0;
+      resetButton.style.display = "none";
       starContainer.innerHTML = "";
+      starContainer.style.display = "none";
+      var sound = document.getElementById("sound");
+      sound.pause();
+      sound.currentTime = 0;
+      createStars(); // Call createStars function to make stars reappear
     }
 
     function createStars() {
-      for (var i = 0; i < 100; i++) {
+      var totalStars = Math.floor(Math.random() * 100) + 50;
+
+      for (var i = 0; i < totalStars; i++) {
         var star = document.createElement("div");
         star.classList.add("star");
-        star.style.animationDelay = Math.random() * 300 + "s";
+
+        var size = Math.random() * 2;
+        var duration = Math.random() * 200 + 150;
+
+        star.style.width = size + "px";
+        star.style.height = size + "px";
+        star.style.animationDuration = duration + "s";
+
+        var posX = Math.random() * 100;
+        var posY = Math.random() * 100;
+
+        star.style.left = posX + "%";
+        star.style.top = posY + "%";
+
         starContainer.appendChild(star);
       }
+
+      starContainer.style.display = "block";
     }
+
+    createStars();
 
     countdownButton.addEventListener("click", function() {
       startCountdown();
-      countdownButton.disabled = true;
-      countdownButton.textContent = "Countdown started";
+      countdownButton.style.display = "none";
       stopButton.style.display = "inline-block";
-      createStars();
+      resetButton.style.display = "inline-block";
     });
 
-    stopButton.addEventListener("click", stopCountdown);
+    stopButton.addEventListener("click", function() {
+      pauseCountdown();
+    });
 
-    continueButton.addEventListener("click", continueCountdown);
+    continueButton.addEventListener("click", function() {
+      continueCountdown();
+    });
 
-    resetButton.addEventListener("click", resetCountdown);
+    resetButton.addEventListener("click", function() {
+      resetCountdown();
+    });
   </script>
+  <audio id="sound" src="C:\Users\Nizar\Documents\Countdown\Alarm.mp3"></audio>
 </body>
 </html>
+
